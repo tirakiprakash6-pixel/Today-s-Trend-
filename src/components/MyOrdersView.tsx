@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PackageCheck, ShoppingBag, XCircle, AlertCircle } from 'lucide-react';
+import { PackageCheck, ShoppingBag, XCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { OrderStatus } from '../types';
 
@@ -56,16 +56,28 @@ export const MyOrdersView: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-          <span>My Orders</span>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-            {activeOrdersCount} Active
-          </span>
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Order history and status
-        </p>
+      <div className="border-b border-slate-200 pb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setActiveTab('home')}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+            id="orders-go-back-btn"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
+            <span>Go Back</span>
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <span>My Orders</span>
+              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                {activeOrdersCount} Active
+              </span>
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Order history and live tracking status
+            </p>
+          </div>
+        </div>
       </div>
 
       {orders.length === 0 ? (

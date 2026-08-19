@@ -8,6 +8,7 @@ import {
   getSavedProductsScriptUrl,
   saveProductsScriptUrl,
   fetchProductsFromGoogleSheets,
+  DEFAULT_PRODUCTS_SCRIPT_URL,
 } from '../utils/googleSheetsSync';
 
 interface ShopContextType {
@@ -78,27 +79,59 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 const CART_STORAGE_KEY = 'todays_trend_cart_v1';
 const LIKED_STORAGE_KEY = 'todays_trend_liked_v1';
 const ORDERS_STORAGE_KEY = 'todays_trend_orders_v1';
+const PRODUCTS_CACHE_KEY = 'todays_trend_cached_products_v1';
 
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [appsScriptUrl, setAppsScriptUrlState] = useState<string>(getSavedAppsScriptUrl());
+  const [productsScriptUrl, setProductsScriptUrlState] = useState<string>(getSavedProductsScriptUrl());
+
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(PRODUCTS_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    // If a Google Sheets product URL is configured, start empty so we never flash old mock products
+    return DEFAULT_PRODUCTS_SCRIPT_URL ? [] : INITIAL_PRODUCTS;
+  });
+
+  const [isLoadingProducts, setIsLoadingProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(PRODUCTS_CACHE_KEY);
+      if (cached) return false;
+    }
+    return Boolean(DEFAULT_PRODUCTS_SCRIPT_URL);
+  });
+
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'popular' | 'price-low' | 'price-high' | 'rating'>('popular');
 
-  const [appsScriptUrl, setAppsScriptUrlState] = useState<string>(getSavedAppsScriptUrl());
-  const [productsScriptUrl, setProductsScriptUrlState] = useState<string>(getSavedProductsScriptUrl());
-
   const refreshProductsFromSheet = async (urlOverride?: string) => {
-    const url = urlOverride || productsScriptUrl || appsScriptUrl;
+    const url = urlOverride || productsScriptUrl || DEFAULT_PRODUCTS_SCRIPT_URL;
     if (!url) return;
     setIsLoadingProducts(true);
     try {
       const sheetProducts = await fetchProductsFromGoogleSheets(url);
       if (sheetProducts && sheetProducts.length > 0) {
         setProducts(sheetProducts);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(sheetProducts));
+          } catch (e) {
+            console.error('Error caching products:', e);
+          }
+        }
       }
     } catch (e) {
       console.log('Error refreshing products from Google Sheets:', e);

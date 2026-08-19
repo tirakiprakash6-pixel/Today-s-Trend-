@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { MAIN_CATEGORIES } from '../data/categories';
 import { ProductCard } from './ProductCard';
 import { useShop } from '../context/ShopContext';
-import { Shirt, Sparkles, Headphones, Utensils, Gift, Grid } from 'lucide-react';
+import { Shirt, Sparkles, Headphones, Utensils, Gift, Grid, ArrowLeft } from 'lucide-react';
 
 export const CategoriesView: React.FC = () => {
-  const { products, selectedCategory, setSelectedCategory } = useShop();
+  const { products, isLoadingProducts, selectedCategory, setSelectedCategory, setActiveTab } = useShop();
 
   const activeMainCategory =
     selectedCategory === 'All' ? MAIN_CATEGORIES[0].name : selectedCategory;
@@ -41,6 +41,21 @@ export const CategoriesView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Top Navigation & Go Back */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => {
+            setSelectedCategory('All');
+            setActiveTab('home');
+          }}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 text-xs font-semibold shadow-2xs transition-all cursor-pointer group"
+          id="categories-go-back-btn"
+        >
+          <ArrowLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-0.5 transition-transform" />
+          <span>← Go Back to Home</span>
+        </button>
+      </div>
+
       {/* Categories Header */}
       <div>
         <div className="mb-4">
@@ -138,11 +153,39 @@ export const CategoriesView: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {categoryProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {isLoadingProducts && products.length === 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[1, 2, 3, 4].map((n) => (
+              <div
+                key={n}
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse flex flex-col"
+              >
+                <div className="aspect-square bg-slate-100" />
+                <div className="p-3.5 space-y-2.5">
+                  <div className="h-3 bg-slate-200 rounded w-1/3" />
+                  <div className="h-4 bg-slate-200 rounded w-4/5" />
+                  <div className="h-4 bg-slate-200 rounded w-1/2" />
+                  <div className="h-8 bg-slate-100 rounded-lg w-full mt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : categoryProducts.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center space-y-2">
+            <p className="text-sm font-semibold text-slate-800">
+              No products found in this category
+            </p>
+            <p className="text-xs text-slate-500">
+              Check back soon for new arrivals from our mall partners.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {categoryProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

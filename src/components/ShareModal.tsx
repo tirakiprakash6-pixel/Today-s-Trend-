@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, MessageCircle } from 'lucide-react';
+import { X, Copy, Check, MessageCircle, ArrowLeft } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 
 export const ShareModal: React.FC = () => {
@@ -28,7 +28,16 @@ export const ShareModal: React.FC = () => {
       <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 space-y-4 border border-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-          <h3 className="font-bold text-sm text-slate-900">Share Product</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShareModalProduct(null)}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Go Back</span>
+            </button>
+            <h3 className="font-bold text-sm text-slate-900">Share Product</h3>
+          </div>
           <button
             onClick={() => setShareModalProduct(null)}
             className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"

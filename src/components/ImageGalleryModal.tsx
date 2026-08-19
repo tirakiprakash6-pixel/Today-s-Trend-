@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Zap, ArrowLeft } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 
 export const ImageGalleryModal: React.FC = () => {
@@ -14,18 +14,29 @@ export const ImageGalleryModal: React.FC = () => {
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6">
       {/* Top Bar */}
       <div className="flex items-center justify-between text-white max-w-5xl mx-auto w-full">
-        <div>
-          <h3 className="text-sm sm:text-base font-bold truncate max-w-md">
-            {product.name}
-          </h3>
-          <p className="text-xs text-pink-300">
-            Image {currentIdx + 1} of 4 • {product.mallShopName}
-          </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setActiveImageModal(null)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            id="gallery-go-back-btn"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Go Back</span>
+          </button>
+          <div>
+            <h3 className="text-sm sm:text-base font-bold truncate max-w-md">
+              {product.name}
+            </h3>
+            <p className="text-xs text-slate-300">
+              Image {currentIdx + 1} of 4 • {product.mallShopName}
+            </p>
+          </div>
         </div>
 
         <button
           onClick={() => setActiveImageModal(null)}
           className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors cursor-pointer"
+          title="Close"
         >
           <X className="w-5 h-5" />
         </button>

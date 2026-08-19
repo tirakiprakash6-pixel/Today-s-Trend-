@@ -3,11 +3,12 @@ import { BannerSlider } from './BannerSlider';
 import { ProductCard } from './ProductCard';
 import { useShop } from '../context/ShopContext';
 import { MAIN_CATEGORIES } from '../data/categories';
-import { SlidersHorizontal, Sparkles, Shirt, Headphones, Utensils, Gift, Grid } from 'lucide-react';
+import { SlidersHorizontal, Sparkles, Shirt, Headphones, Utensils, Gift, Grid, ArrowLeft } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
   const {
     products,
+    isLoadingProducts,
     searchQuery,
     selectedCategory,
     setSelectedCategory,
@@ -142,17 +143,31 @@ export const HomeView: React.FC = () => {
       {/* Products Catalog Section */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
-              {searchQuery
-                ? `Results for "${searchQuery}"`
-                : selectedCategory === 'All'
-                ? 'Featured Catalog'
-                : `${selectedCategory}`}
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Showing {sortedProducts.length} items • Direct store fulfillment
-            </p>
+          <div className="flex items-center gap-3">
+            {(selectedCategory !== 'All' || searchQuery) && (
+              <button
+                onClick={() => {
+                  setSelectedCategory('All');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                id="home-filter-go-back-btn"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+                <span>Go Back to All</span>
+              </button>
+            )}
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+                {searchQuery
+                  ? `Results for "${searchQuery}"`
+                  : selectedCategory === 'All'
+                  ? 'Featured Catalog'
+                  : `${selectedCategory}`}
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Showing {sortedProducts.length} items • Direct store fulfillment
+              </p>
+            </div>
           </div>
 
           {/* Sort Filter */}
@@ -174,7 +189,24 @@ export const HomeView: React.FC = () => {
         </div>
 
         {/* Product Grid */}
-        {sortedProducts.length === 0 ? (
+        {isLoadingProducts && products.length === 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[1, 2, 3, 4].map((n) => (
+              <div
+                key={n}
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse flex flex-col"
+              >
+                <div className="aspect-square bg-slate-100" />
+                <div className="p-3.5 space-y-2.5">
+                  <div className="h-3 bg-slate-200 rounded w-1/3" />
+                  <div className="h-4 bg-slate-200 rounded w-4/5" />
+                  <div className="h-4 bg-slate-200 rounded w-1/2" />
+                  <div className="h-8 bg-slate-100 rounded-lg w-full mt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : sortedProducts.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center space-y-3">
             <p className="text-sm font-semibold text-slate-800">
               No products found matching your search

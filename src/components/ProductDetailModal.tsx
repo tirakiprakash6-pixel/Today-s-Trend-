@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  ArrowLeft,
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 
@@ -56,11 +57,21 @@ export const ProductDetailModal: React.FC = () => {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6">
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
         {/* Header */}
-        <div className="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span className="text-slate-900 font-bold">{product.category}</span>
-            <span>/</span>
-            <span>{product.subcategory}</span>
+        <div className="px-4 sm:px-5 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSelectedProductForDetail(null)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+              id="product-modal-go-back-btn"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+              <span>Go Back</span>
+            </button>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <span className="text-slate-900 font-bold">{product.category}</span>
+              <span>/</span>
+              <span>{product.subcategory}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1">
@@ -74,6 +85,7 @@ export const ProductDetailModal: React.FC = () => {
             <button
               onClick={() => setSelectedProductForDetail(null)}
               className="p-2 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Close"
             >
               <X className="w-5 h-5" />
             </button>

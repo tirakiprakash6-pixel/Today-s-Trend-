@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 
 export const CartDrawer: React.FC = () => {
@@ -29,20 +29,31 @@ export const CartDrawer: React.FC = () => {
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
           {/* Cart Header */}
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <ShoppingBag className="w-5 h-5 text-slate-900" />
-              <div>
-                <h2 className="font-bold text-slate-900 text-base">Your Cart</h2>
-                <p className="text-xs text-slate-500">
-                  {cartTotalCount} {cartTotalCount === 1 ? 'item' : 'items'}
-                </p>
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                id="cart-go-back-btn"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+                <span>Go Back</span>
+              </button>
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-slate-900" />
+                <div>
+                  <h2 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">Your Bag</h2>
+                  <p className="text-[10px] text-slate-500">
+                    {cartTotalCount} {cartTotalCount === 1 ? 'item' : 'items'}
+                  </p>
+                </div>
               </div>
             </div>
 
             <button
               onClick={() => setIsCartOpen(false)}
               className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Close"
             >
               <X className="w-5 h-5" />
             </button>

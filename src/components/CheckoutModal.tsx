@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Loader2,
   Lock,
+  ArrowLeft,
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { CustomerDetails } from '../types';
@@ -116,17 +117,29 @@ export const CheckoutModal: React.FC = () => {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
         {/* Header */}
-        <div className="px-5 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-slate-700" />
-            <h2 className="font-bold text-slate-900 text-sm sm:text-base">
-              Checkout
-            </h2>
+        <div className="px-4 sm:px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsCheckoutOpen(false)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+              id="checkout-modal-go-back-btn"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+              <span>Go Back</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-slate-700" />
+              <h2 className="font-bold text-slate-900 text-sm sm:text-base">
+                Secure Checkout
+              </h2>
+            </div>
           </div>
 
           <button
             onClick={() => setIsCheckoutOpen(false)}
             className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+            title="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -376,8 +389,17 @@ export const CheckoutModal: React.FC = () => {
                       <span>Processing Order...</span>
                     </>
                   ) : (
-                    <span>Order</span>
+                    <span>Confirm Order (Cash/UPI on Delivery)</span>
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutOpen(false)}
+                  className="w-full py-2.5 text-center text-xs text-slate-500 hover:text-slate-900 font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Go Back to Shopping</span>
                 </button>
               </div>
             </form>
