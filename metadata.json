@@ -1,0 +1,6 @@
+{
+  "name": "TODAY'S TREND",
+  "description": "Shopify-style direct-to-consumer store for TODAY'S TREND mall with zero-login checkout, fast local delivery, and Google Sheets backend support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
