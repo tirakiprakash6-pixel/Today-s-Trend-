@@ -13,9 +13,13 @@ import {
   Package,
   ShoppingCart,
   CheckCircle2,
+  ShieldCheck,
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
-import { STANDALONE_PRODUCTS_APPS_SCRIPT_CODE } from '../utils/googleSheetsSync';
+import {
+  STANDALONE_PRODUCTS_APPS_SCRIPT_CODE,
+  STANDALONE_ORDERS_APPS_SCRIPT_CODE,
+} from '../utils/googleSheetsSync';
 
 export const GoogleSheetsSetupModal: React.FC = () => {
   const {
@@ -33,6 +37,7 @@ export const GoogleSheetsSetupModal: React.FC = () => {
   const [ordersUrl, setOrdersUrl] = useState(appsScriptUrl);
   const [prodUrl, setProdUrl] = useState(productsScriptUrl);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedOrdersCode, setCopiedOrdersCode] = useState(false);
   const [testStatus, setTestStatus] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const [syncingProducts, setSyncingProducts] = useState(false);
@@ -43,6 +48,12 @@ export const GoogleSheetsSetupModal: React.FC = () => {
     navigator.clipboard.writeText(STANDALONE_PRODUCTS_APPS_SCRIPT_CODE);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2500);
+  };
+
+  const handleCopyOrdersCode = () => {
+    navigator.clipboard.writeText(STANDALONE_ORDERS_APPS_SCRIPT_CODE);
+    setCopiedOrdersCode(true);
+    setTimeout(() => setCopiedOrdersCode(false), 2500);
   };
 
   const handleSaveProductsUrl = () => {
@@ -285,23 +296,68 @@ export const GoogleSheetsSetupModal: React.FC = () => {
             </>
           ) : (
             <>
-              {/* Existing Orders Sheet Status */}
+              {/* Existing Orders Sheet Status & Dispatch Rule */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2 text-emerald-700">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-bold text-xs sm:text-sm text-slate-900">
-                    Orders Sheet is Connected & Ready
+                    1st Sheet: Orders Receiver & WhatsApp Verification
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Your existing Orders spreadsheet receives all customer orders placed on the store. It remains completely independent and safe.
+                  Your Orders spreadsheet receives every order placed on the website in real-time. It remains 100% separate and independent from your Products Sheet.
                 </p>
+
+                {/* Dispatch Rule Box */}
+                <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3 space-y-2 text-xs text-amber-950">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                    <ShieldCheck className="w-4 h-4 text-amber-700" />
+                    <span>Packing & Dispatch Rule (Zero-RTO Protection):</span>
+                  </div>
+                  <p className="leading-relaxed text-[11px] text-amber-900/90">
+                    New orders are recorded with <strong className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-950 font-mono">WhatsApp Confirmation = "NO"</strong> and <strong className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-950 font-mono">Status = "Waiting"</strong>. Once the customer taps the 1-click WhatsApp button or confirms via message, change to <strong className="bg-emerald-100 px-1.5 py-0.5 rounded text-emerald-950 font-mono">"YES" / "Confirmed"</strong> and dispatch the parcel!
+                  </p>
+                  
+                  {/* Visual Table Sample */}
+                  <div className="overflow-x-auto bg-white rounded-lg border border-amber-200 mt-2 font-mono text-[10px]">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-900 text-white">
+                        <tr>
+                          <th className="p-1.5">Order ID</th>
+                          <th className="p-1.5">Customer</th>
+                          <th className="p-1.5">Phone</th>
+                          <th className="p-1.5">Total</th>
+                          <th className="p-1.5 bg-emerald-700">WhatsApp Confirmation</th>
+                          <th className="p-1.5 bg-slate-800">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 text-slate-700">
+                        <tr className="bg-emerald-50/50">
+                          <td className="p-1.5 font-bold">TT-849201</td>
+                          <td className="p-1.5">Rahul Verma</td>
+                          <td className="p-1.5">9876543210</td>
+                          <td className="p-1.5 font-bold">₹899</td>
+                          <td className="p-1.5 text-emerald-700 font-bold">YES</td>
+                          <td className="p-1.5 text-emerald-700 font-bold">Confirmed (Dispatch 📦)</td>
+                        </tr>
+                        <tr className="bg-amber-50/40">
+                          <td className="p-1.5 font-bold">TT-849202</td>
+                          <td className="p-1.5">Amit Sharma</td>
+                          <td className="p-1.5">9811223344</td>
+                          <td className="p-1.5 font-bold">₹599</td>
+                          <td className="p-1.5 text-amber-700 font-bold">NO</td>
+                          <td className="p-1.5 text-amber-700 font-bold">Waiting (Hold)</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
 
               {/* Orders Webhook URL */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-slate-800">
-                  Orders Webhook URL:
+                  Orders Sheet Webhook URL:
                 </label>
                 <div className="flex gap-2 flex-col sm:flex-row">
                   <input
@@ -346,6 +402,36 @@ export const GoogleSheetsSetupModal: React.FC = () => {
                     {testStatus}
                   </p>
                 )}
+              </div>
+
+              {/* Orders Apps Script Code (Code.gs) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <Code className="w-4 h-4 text-emerald-700" />
+                    <span>Orders Sheet Apps Script Code (Code.gs)</span>
+                  </div>
+                  <button
+                    onClick={handleCopyOrdersCode}
+                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    {copiedOrdersCode ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Script</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <pre className="bg-slate-900 text-emerald-300 p-4 rounded-xl text-[11px] overflow-x-auto font-mono max-h-56 leading-relaxed">
+                  {STANDALONE_ORDERS_APPS_SCRIPT_CODE}
+                </pre>
               </div>
             </>
           )}

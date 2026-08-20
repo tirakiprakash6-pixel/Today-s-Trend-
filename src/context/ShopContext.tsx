@@ -3,6 +3,7 @@ import { Product, CartItem, Order, CustomerDetails, ActiveTab, CartToastItem } f
 import { INITIAL_PRODUCTS } from '../data/products';
 import {
   submitOrderToGoogleSheets,
+  updateOrderConfirmationInGoogleSheets,
   getSavedAppsScriptUrl,
   saveAppsScriptUrl,
   getSavedProductsScriptUrl,
@@ -53,7 +54,8 @@ interface ShopContextType {
   setIsCheckoutOpen: (open: boolean) => void;
   checkoutProduct: Product | null;
   openDirectCheckout: (product: Product) => void;
-  placeOrder: (customer: CustomerDetails) => Promise<{ success: boolean; orderId: string; message: string }>;
+  placeOrder: (customer: CustomerDetails) => Promise<{ success: boolean; orderId: string; order?: Order; message: string }>;
+  markWhatsAppConfirmed: (orderId: string) => void;
   cancelOrder: (orderId: string) => void;
 
   // Modals & UI
@@ -332,7 +334,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Place order
-  const placeOrder = async (customer: CustomerDetails): Promise<{ success: boolean; orderId: string; message: string }> => {
+  const placeOrder = async (customer: CustomerDetails): Promise<{ success: boolean; orderId: string; order?: Order; message: string }> => {
     const orderItems: CartItem[] = checkoutProduct
       ? [
           {
@@ -374,6 +376,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       estimatedDelivery: 'Today within 2-3 Hours',
       deliveryPartner: assignedPartner,
       syncedToGoogleSheets: false,
+      whatsAppConfirmed: false,
     };
 
     // Attempt to submit to Google Sheets
@@ -389,14 +392,21 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     setCheckoutProduct(null);
-    setIsCheckoutOpen(false);
-    setActiveTab('orders'); // Jump straight to "My Orders" so customer sees their placed order immediately!
 
     return {
       success: true,
       orderId: randomOrderId,
+      order: newOrder,
       message: syncRes.message,
     };
+  };
+
+  const markWhatsAppConfirmed = (orderId: string) => {
+    setOrders((prev) =>
+      prev.map((ord) => (ord.id === orderId ? { ...ord, whatsAppConfirmed: true } : ord))
+    );
+    // Send real-time webhook update to Google Sheets to change "NO / Waiting" to "YES / Confirmed"
+    updateOrderConfirmationInGoogleSheets(orderId, appsScriptUrl);
   };
 
   const cancelOrder = (orderId: string) => {
@@ -444,6 +454,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         checkoutProduct,
         openDirectCheckout,
         placeOrder,
+        markWhatsAppConfirmed,
         cancelOrder,
         selectedProductForDetail,
         setSelectedProductForDetail,

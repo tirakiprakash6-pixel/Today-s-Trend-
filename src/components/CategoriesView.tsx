@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MAIN_CATEGORIES } from '../data/categories';
 import { ProductCard } from './ProductCard';
 import { useShop } from '../context/ShopContext';
-import { Shirt, Sparkles, Headphones, Utensils, Gift, Grid, ArrowLeft } from 'lucide-react';
+import { Shirt, Gem, Headphones, Utensils, Gift, Grid, ArrowLeft } from 'lucide-react';
 
 export const CategoriesView: React.FC = () => {
   const { products, isLoadingProducts, selectedCategory, setSelectedCategory, setActiveTab } = useShop();
@@ -27,7 +27,7 @@ export const CategoriesView: React.FC = () => {
       case 'Men & woman Fashion':
         return <Shirt className="w-4 h-4" />;
       case 'Saree & jewelry':
-        return <Sparkles className="w-4 h-4" />;
+        return <Gem className="w-4 h-4" />;
       case 'Electronics & sports':
         return <Headphones className="w-4 h-4" />;
       case 'Kitchen items':

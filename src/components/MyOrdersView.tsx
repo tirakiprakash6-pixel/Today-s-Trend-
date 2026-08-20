@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { PackageCheck, ShoppingBag, XCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { PackageCheck, ShoppingBag, XCircle, AlertCircle, ArrowLeft, MessageCircle, Check, Clock } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
-import { OrderStatus } from '../types';
+import { Order, OrderStatus } from '../types';
+import { getWhatsAppOrderConfirmationUrl } from '../utils/googleSheetsSync';
 
 export const MyOrdersView: React.FC = () => {
-  const { orders, cancelOrder, setActiveTab } = useShop();
+  const { orders, cancelOrder, markWhatsAppConfirmed, setActiveTab } = useShop();
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const activeOrdersCount = orders.filter((order) => order.status !== 'cancelled').length;
 
@@ -53,6 +54,11 @@ export const MyOrdersView: React.FC = () => {
     setConfirmCancelId(null);
   };
 
+  const handleConfirmOnWhatsApp = (order: Order) => {
+    const waUrl = getWhatsAppOrderConfirmationUrl(order);
+    window.open(waUrl, '_blank');
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
@@ -74,7 +80,7 @@ export const MyOrdersView: React.FC = () => {
               </span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Order history and live tracking status
+              Order history, WhatsApp confirmation status, and live tracking
             </p>
           </div>
         </div>
@@ -109,14 +115,51 @@ export const MyOrdersView: React.FC = () => {
                 className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-2xs"
               >
                 {/* Order Status & Date Header */}
-                <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                  <span className="text-xs text-slate-500">
-                    Ordered on {order.createdAt}
-                  </span>
-                  <div>{getStatusBadge(order.status)}</div>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-900">
+                      #{order.id}
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-xs text-slate-500">
+                      {order.createdAt}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(order.status)}
+                  </div>
                 </div>
 
-                {/* Products in this order: ONLY Product Image, Product Name, and Qty */}
+                {/* WhatsApp Confirmation Status Bar */}
+                {order.status !== 'cancelled' && (
+                  <div className="bg-slate-50/80 border border-slate-200 rounded-lg p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-600 font-medium">WhatsApp Confirmation:</span>
+                      {order.whatsAppConfirmed ? (
+                        <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1">
+                          <Check className="w-3 h-3 stroke-[2.5]" /> Confirmed
+                        </span>
+                      ) : (
+                        <span className="text-white bg-red-600 font-bold px-2.5 py-0.5 rounded-full text-[11px] flex items-center gap-1 shadow-2xs">
+                          <Clock className="w-3 h-3 stroke-[2.5]" /> Pending
+                        </span>
+                      )}
+                    </div>
+
+                    {!order.whatsAppConfirmed && (
+                      <button
+                        type="button"
+                        onClick={() => handleConfirmOnWhatsApp(order)}
+                        className="bg-[#25D366] hover:bg-[#20ba5a] text-white px-3 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 fill-white text-[#25D366]" />
+                        <span>Send Receipt on WhatsApp</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Products in this order */}
                 <div className="divide-y divide-slate-100">
                   {order.items.map((item, idx) => (
                     <div
@@ -139,6 +182,8 @@ export const MyOrdersView: React.FC = () => {
                         </h3>
                         <p className="text-xs font-medium text-slate-600 mt-1">
                           Qty: {item.quantity}
+                          {item.selectedSize && ` • Size: ${item.selectedSize}`}
+                          {item.selectedColor && ` • Color: ${item.selectedColor}`}
                         </p>
                       </div>
                     </div>
@@ -148,9 +193,12 @@ export const MyOrdersView: React.FC = () => {
                 {/* Total Summary & Cancel Action */}
                 <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-500 font-medium">Total:</span>
+                    <span className="text-slate-500 font-medium">Total Payable:</span>
                     <span className="text-sm font-bold text-slate-900">
                       ₹{order.totalAmount}
+                    </span>
+                    <span className="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded ml-1">
+                      Cash on Delivery
                     </span>
                   </div>
 

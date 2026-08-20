@@ -31,8 +31,9 @@ export interface CustomerDetails {
   phone: string;
   homeNumber: string;
   address: string;
-  state: string;
   city: string;
+  district?: string;
+  state: string;
   pincode: string;
   paymentMethod: 'cod' | 'upi_on_delivery' | 'online_upi';
 }
@@ -57,6 +58,7 @@ export interface Order {
     vehicleNumber: string;
   };
   syncedToGoogleSheets?: boolean;
+  whatsAppConfirmed?: boolean;
 }
 
 export type ActiveTab = 'home' | 'categories' | 'orders' | 'liked';

@@ -3,7 +3,7 @@ import { BannerSlider } from './BannerSlider';
 import { ProductCard } from './ProductCard';
 import { useShop } from '../context/ShopContext';
 import { MAIN_CATEGORIES } from '../data/categories';
-import { SlidersHorizontal, Sparkles, Shirt, Headphones, Utensils, Gift, Grid, ArrowLeft } from 'lucide-react';
+import { SlidersHorizontal, Gem, Shirt, Headphones, Utensils, Gift, Grid, ArrowLeft } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
   const {
@@ -44,7 +44,7 @@ export const HomeView: React.FC = () => {
       case 'Men & woman Fashion':
         return <Shirt className="w-4 h-4" />;
       case 'Saree & jewelry':
-        return <Sparkles className="w-4 h-4" />;
+        return <Gem className="w-4 h-4" />;
       case 'Electronics & sports':
         return <Headphones className="w-4 h-4" />;
       case 'Kitchen items':

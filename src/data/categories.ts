@@ -31,7 +31,7 @@ export const MAIN_CATEGORIES: CategoryInfo[] = [
     bannerImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200&auto=format&fit=crop&q=80',
     subcategories: ['All', 'Silk Sarees', 'Bridal & Festive Jewelry', 'Designer Sarees', 'Earrings & Jhumkas'],
     itemCount: 4,
-    iconName: 'Sparkles',
+    iconName: 'Gem',
   },
   {
     id: 'cat-electronics-sports',

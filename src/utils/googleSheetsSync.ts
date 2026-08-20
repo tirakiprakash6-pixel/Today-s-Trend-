@@ -141,8 +141,9 @@ export async function submitOrderToGoogleSheets(
       phoneNumber: order.customer.phone,
       homeNumber: order.customer.homeNumber,
       address: order.customer.address,
-      state: order.customer.state,
       city: order.customer.city,
+      district: order.customer.district || '',
+      state: order.customer.state,
       pincode: order.customer.pincode,
       itemsSummary: order.items
         .map(
@@ -151,7 +152,9 @@ export async function submitOrderToGoogleSheets(
         )
         .join(' | '),
       totalAmount: order.totalAmount,
-      paymentMethod: order.customer.paymentMethod,
+      paymentMethod: order.customer.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : order.customer.paymentMethod,
+      whatsAppConfirmation: 'NO', // Always default to NO. Owner confirms upon receiving real WhatsApp message.
+      orderStatus: 'Waiting', // Default: Waiting for real WhatsApp message
     };
 
     await fetch(targetUrl, {
@@ -175,6 +178,168 @@ export async function submitOrderToGoogleSheets(
     };
   }
 }
+
+export async function updateOrderConfirmationInGoogleSheets(
+  orderId: string,
+  appsScriptUrl?: string
+): Promise<{ success: boolean; message: string }> {
+  const targetUrl = appsScriptUrl || getSavedAppsScriptUrl();
+
+  if (!targetUrl) {
+    return { success: true, message: 'Updated locally' };
+  }
+
+  try {
+    const payload = {
+      action: 'confirm',
+      orderId: orderId,
+      whatsAppConfirmation: 'YES',
+      orderStatus: 'Confirmed',
+    };
+
+    await fetch(targetUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    return { success: true, message: 'Google Sheet updated to YES / Confirmed!' };
+  } catch (err) {
+    console.warn('Could not update confirmation in Google Sheet:', err);
+    return { success: false, message: 'Failed to update Google Sheet' };
+  }
+}
+
+export const STORE_OWNER_WHATSAPP_NUMBER = '917899342585';
+export const STORE_OWNER_WHATSAPP_DISPLAY = '+91 78993 42585';
+
+/**
+ * Generates 1-Click WhatsApp Order Confirmation Link
+ */
+export function getWhatsAppOrderConfirmationUrl(order: Order, storeWhatsAppNumber: string = STORE_OWNER_WHATSAPP_NUMBER): string {
+  const itemsText = order.items
+    .map((item) => `• ${item.product.name} (Qty: ${item.quantity}${item.selectedSize ? `, Size: ${item.selectedSize}` : ''})`)
+    .join('\n');
+
+  const message = `*TODAY'S TREND ORDER CONFIRMATION* 📦
+  
+Hi! I want to confirm my Cash on Delivery order:
+*Order ID:* ${order.id}
+*Customer Name:* ${order.customer.fullName}
+*Mobile Number:* +91 ${order.customer.phone}
+*Total Payable:* ₹${order.totalAmount}
+
+*Items:*
+${itemsText}
+
+*Delivery Address:*
+${order.customer.homeNumber ? `${order.customer.homeNumber}, ` : ''}${order.customer.address}, ${order.customer.city}${order.customer.district && order.customer.district !== order.customer.city ? `, Dist: ${order.customer.district}` : ''}, ${order.customer.state} - ${order.customer.pincode}
+
+✅ *Please mark my order as "Confirmed: YES" and dispatch it!*`;
+
+  return `https://wa.me/${storeWhatsAppNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+}
+
+export const STANDALONE_ORDERS_APPS_SCRIPT_CODE = `/**
+ * =========================================================================
+ * TODAY'S TREND - Orders Receiver Script (Code.gs)
+ * =========================================================================
+ * Matches your exact Google Sheet columns with WhatsApp Confirmation & Status.
+ * Automatically updates "WhatsApp Confirmation" to YES when customer confirms!
+ *
+ * Dispatch Rule:
+ * The delivery / packing team only dispatches orders where
+ * "WhatsApp Confirmation" is marked YES (Confirmed).
+ * =========================================================================
+ */
+
+function setupOrdersSheet() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var headers = [
+    "Order ID",
+    "Timestamp",
+    "Full Name",
+    "Phone Number",
+    "WhatsApp Confirmation",
+    "Status",
+    "Home / Flat No.",
+    "Street Address / Area",
+    "City / Town",
+    "District",
+    "State",
+    "Pin Code",
+    "Items Ordered",
+    "Total Amount (₹)",
+    "Payment Mode"
+  ];
+  
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length)
+         .setFontWeight("bold")
+         .setBackground("#0f172a")
+         .setFontColor("#ffffff")
+         .setHorizontalAlignment("center");
+    sheet.setFrozenRows(1);
+  }
+}
+
+function doPost(e) {
+  try {
+    setupOrdersSheet();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    
+    // 1. Check if this is an action to CONFIRM an existing order
+    if (data.action === "confirm" && data.orderId) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow >= 2) {
+        var orderIds = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (var i = 0; i < orderIds.length; i++) {
+          if (String(orderIds[i][0]).trim() === String(data.orderId).trim()) {
+            var rowIndex = i + 2;
+            // Column 5: WhatsApp Confirmation ("YES")
+            // Column 6: Status ("Confirmed")
+            sheet.getRange(rowIndex, 5).setValue(data.whatsAppConfirmation || "YES");
+            sheet.getRange(rowIndex, 6).setValue(data.orderStatus || "Confirmed");
+            
+            return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Order confirmed in row " + rowIndex }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+      }
+    }
+    
+    // 2. Otherwise, Append new order row matching your exact sheet columns
+    sheet.appendRow([
+      data.orderId || ("TT-" + Math.floor(100000 + Math.random() * 900000)),
+      data.timestamp || new Date().toLocaleString("en-IN"),
+      data.fullName || "Customer",
+      "'" + (data.phoneNumber || ""), // Prefix with ' to preserve full 10 digits in Sheets
+      data.whatsAppConfirmation || "NO",      // WhatsApp Confirmation (Default: NO)
+      data.orderStatus || "Waiting",           // Status (Default: Waiting -> Confirmed)
+      data.homeNumber || "",
+      data.address || "",
+      data.city || "",
+      data.district || "",
+      data.state || "",
+      "'" + (data.pincode || ""),
+      data.itemsSummary || "",
+      data.totalAmount || 0,
+      data.paymentMethod || "Cash on Delivery (COD)"
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Order recorded successfully" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+`;
 
 export const STANDALONE_PRODUCTS_APPS_SCRIPT_CODE = `/**
  * =========================================================================
